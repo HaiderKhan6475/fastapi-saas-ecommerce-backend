@@ -1,0 +1,39 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: saas-ecommerce-api:dev
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    environment:
+      APP_NAME: SaaS E-Commerce API (development)
+      ENVIRONMENT: development
+      DATABASE_URL: sqlite+aiosqlite:////data/saas_ecommerce.db
+      SECRET_KEY: ${DEV_SECRET_KEY:?Set DEV_SECRET_KEY to a generated local-only key}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+      CORS_ORIGINS: '["http://localhost:3000"]'
+      REQUEST_TIMEOUT_SECONDS: "30"
+    volumes:
+      - sqlite_data:/data
+      - sqlite_backups:/backups
+
+volumes:
+  sqlite_data:
+  sqlite_backups:
